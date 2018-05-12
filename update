@@ -3,3 +3,4 @@ refname="$1"
 oldrev="$2"
 newrev="$3"
 git show $newrev > commitFile$newrev.txt
+python cleanfile.py commitFile$newrev
