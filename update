@@ -5,3 +5,4 @@ newrev="$3"
 git show $newrev > commitFile$newrev.txt
 python cleanfile.py commitFile$newrev
 node checkcode.js commitFile$newrev
+node backend-code-runner.js commitFilefa387b937b601b57731342623a1c9ab3a484b748.txt_check_1.js | tail -2 | read var
