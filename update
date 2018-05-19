@@ -7,8 +7,9 @@ file=commitFile$newrev.txt
 while read -r line
 do
     if [[ "$line" == diff* ]] ; then toextract=false ; fi
-    if [[ "$line" == @@* ]] ; then toextract=true ; fi
-
+    if [[ "$line" == @@* ]] ; then toextract=true ; fi 
+    
+    # content to be output to JS file
     if [ "$toextract" = true ] && [[ "$line" != @@* ]] && [[ "$line" != -* ]] ; then
         echo $line | sed 's/^.//'>> input.js  #remove first character
     fi
