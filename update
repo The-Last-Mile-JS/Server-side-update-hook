@@ -32,7 +32,6 @@ done < $file
 result=$(node ./backend_code_runner/backend_code_runner.js)
 
 if [ "${result: -2}" != "ok" ] ; then
-    echo $result
     echo Fail to Pass all Unit Tests.
     rm input.js
     exit 1
