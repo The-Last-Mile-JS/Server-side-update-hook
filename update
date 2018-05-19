@@ -3,6 +3,14 @@ refname="$1"
 oldrev="$2"
 newrev="$3"
 git show $newrev > commitFile$newrev.txt
-python cleanfile.py commitFile$newrev
-node checkcode.js commitFile$newrev
-node backend-code-runner.js commitFilefa387b937b601b57731342623a1c9ab3a484b748.txt_check_1.js | tail -2 | read var
+file=commitFile$newrev.txt
+while read -r line
+do
+    if [[ "$line" == diff* ]] ; then toextract=false ; fi
+    if [[ "$line" == @@* ]] ; then toextract=true ; fi
+
+    if [ "$toextract" = true ] && [[ "$line" != @@* ]] && [[ "$line" != -* ]] ; then
+        echo $line | sed 's/^.//'>> input.js  #remove first character
+    fi
+
+done < $file
