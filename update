@@ -4,39 +4,69 @@ PATH=$PATH:/usr/local/bin:/usr/local/sbin # for npm or node commands to run
 refname="$1"
 oldrev="$2"
 newrev="$3"
-git show $newrev > commitFile$newrev.txt
-file=commitFile$newrev.txt
-while read -r line
-do
-    if [[ "$line" == diff* ]]; then
-        if [[ "$toextract" == true ]]; then # runs code runner before going to new file
-            result=$(node ./backend_code_runner/backend_code_runner.js)
-            if [ "${result: -2}" != "ok" ] ; then
-                rm input.js
-                exit 1
-            fi
-            > input.js
-        fi
-        toextract=false
-    fi
+branch=$(git rev-parse --symbolic --abbrev-ref $refname) # branch name
 
-    if [[ "$line" == @@* ]] ; then toextract=true ; fi
-
-    if [ "$toextract" == true ] && [[ "$line" != @@* ]] && [[ "$line" != -* ]] ; then
-        echo "$line" | sed 's/^.//'>> input.js  #remove first character
-    fi
-
-done < $file
-
-
-result=$(node ./backend_code_runner/backend_code_runner.js)
-
-if [ "${result: -2}" != "ok" ] ; then
-    echo Fail to Pass all Unit Tests.
-    rm input.js
-    exit 1
+# ignore push from master branch
+if [[ "$branch" == "master" ]]; then
+    echo "admin – commit to master branch - success"
+    exit 0
 fi
 
-echo All Unit Test Passes.
-rm input.js
+
+# get all the JS files in the pushed commit
+filenames=( $(git diff-tree --no-commit-id --name-only -r $newrev) )
+for filename in "${filenames[@]}"
+do
+    # create the file for unit-testing
+    git show $newrev:"$filename" > input.js
+    
+    result=$(node ./backend_code_runner/backend_code_runner.js)
+    if [ "${result: -2}" != "ok" ] ; then
+        # fail to pass the tests
+        echo "Fail to Pass all Unit Tests for file: $filename"
+        rm input.js
+
+        exit 1
+    fi
+    echo "All Unit Test Passes for file: $filename"
+    rm input.js
+done
 exit 0
+
+# git show $newrev > commitFile$newrev.txt
+# file=commitFile$newrev.txt
+# while read -r line
+# do
+#     if [[ "$line" == diff* ]]; then
+#         if [[ "$toextract" == true ]]; then # runs code runner before going to new file
+#             result=$(node ./backend_code_runner/backend_code_runner.js)
+#             if [ "${result: -2}" != "ok" ] ; then
+#                 rm input.js
+#                 exit 1
+#             fi
+#             > input.js
+#         fi
+#         toextract=false
+#     fi
+#
+#     if [[ "$line" == @@* ]] ; then toextract=true ; fi
+#
+#     if [ "$toextract" == true ] && [[ "$line" != @@* ]] && [[ "$line" != -* ]] ; then
+#         echo "$line" | sed 's/^.//'>> input.js  #remove first character
+#     fi
+#
+# done < $file
+#
+#
+# result=$(node ./backend_code_runner/backend_code_runner.js)
+#
+# if [ "${result: -2}" != "ok" ] ; then
+#     echo Fail to Pass all Unit Tests.
+#     rm input.js
+#
+#     exit 1
+# fi
+#
+# echo All Unit Test Passes.
+# rm input.js
+# exit 0
