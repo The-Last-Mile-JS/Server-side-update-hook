@@ -1,5 +1,5 @@
 var testCode = require('tape');
-var unitTest = require("./unit_test");      // Unit tests
+var unitTest = require(process.argv[2].slice(2).trim());   // Path to unit tests
 var code = require("../input");            // Written function
 
 
